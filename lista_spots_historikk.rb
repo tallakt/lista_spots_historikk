@@ -178,6 +178,10 @@ def wave_dir_ok?(spot, wave_dir)
   end
 end
 
+configure :production do
+  require 'newrelic_rpm'
+end
+
 get '/' do
   erb :index
 end

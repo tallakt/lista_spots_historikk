@@ -3,6 +3,7 @@ GEM
   specs:
     backports (3.3.0)
     eventmachine (1.0.3)
+    newrelic_rpm (3.6.0.78)
     nokogiri (1.5.9)
     rack (1.5.2)
     rack-protection (1.5.0)
@@ -26,6 +27,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  newrelic_rpm
   nokogiri
   sinatra
   sinatra-contrib
