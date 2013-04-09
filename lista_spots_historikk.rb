@@ -48,19 +48,19 @@ SPOTS = [
     tekst: 'Litlerauna/Bua (kite, bølger)',
     wind: 12..25,
     wind_dir: 'WNW'..'NW',
-    wave: 4..99,
+    wave: 3..99,
     wave_dir: 'W'..'NW' },
   { id: 'blindgjengeren-w', 
     tekst: 'Militærområdet (kite, bølger)',
     wind: 12..25,
     wind_dir: 'SW'..'WSW',
-    wave: 4..99,
+    wave: 3..99,
     wave_dir: 'SW'..'WNW' },
   { id: 'vraket-w', 
     tekst: 'Vraket (Bausje vestodden) (kite, bølger)',
     wind: 12..25,
     wind_dir: 'SW'..'WSW',
-    wave: 4..99,
+    wave: 3..99,
     wave_dir: 'SW'..'WNW' },
   { id: 'lille-havika-w', 
     tekst: 'Lille Havika (kite, bølger)',
@@ -87,19 +87,19 @@ SPOTS = [
   { id: 'bua-sup', 
     tekst: 'Litlerauna/Bua (SUP)',
     wind: 0..10,
-    wave: 3..99,
+    wave: 2.5..99,
     wave_dir: 'W'..'NW' },
   { id: 'blindgjengeren-sup', 
     tekst: 'Militærområdet (SUP)',
     wind: 0..10,
     wind_dir: 'SW'..'WSW',
-    wave: 3..99,
+    wave: 2.5..99,
     wave_dir: 'SW'..'WNW' },
   { id: 'vraket-sup', 
     tekst: 'Vraket (Bausje vestodden) (SUP)',
     wind: 0..10,
     wind_dir: 'SW'..'WSW',
-    wave: 3..99,
+    wave: 2.5..99,
     wave_dir: 'SW'..'WNW' },
 ]
 
@@ -125,6 +125,10 @@ def is_sunlight?(date, hours)
   SUN_HOURS[date.match(/\d\d\.(\d\d)\.\d\d\d\d/)[1].to_i].member? hours
 end
 
+def raining?(rain)
+  rain >= 2.0
+end
+
 
 def wind_ok?(spot, wind)
   if spot[:wind]
@@ -145,7 +149,7 @@ end
 def direction_range_member?(range, dir)
   a, b, c = [range.begin, range.end, dir].map {|dd| WIND_DIRS.index(dd) }
   if a && b && c
-    ((a <= c) && (c <= b) && a <= b) || ((c <= b) && (a <= c) && b < a )
+    ((a <= c) && (c <= b) && (a <= b)) || (((c <= b) || (a <= c)) && (b < a))
   end
 end
 
@@ -203,23 +207,27 @@ get '/report' do
           if params['weekend'] and not for_weekend_warrior?(guru_day[:date], time)
             :not_weekend
           else
-            results = spots.map do |spot|
-              wind_ok?(spot, values[:wind]) && wind_dir_ok?(spot, values[:wind_dir]) &&
-                wave_ok?(spot, values[:wave]) && wave_dir_ok?(spot, values[:wave_dir]) 
-            end
-              
-            ok = if @all_spots
-              # all spots must match
-              results.reduce &:"&"
+            if params['regn'] and raining?(values[:rain])
+              :rain
             else
-              # any spot will match
-              results.reduce &:"|"
-            end
+              results = spots.map do |spot|
+                wind_ok?(spot, values[:wind]) && wind_dir_ok?(spot, values[:wind_dir]) &&
+                  wave_ok?(spot, values[:wave]) && wave_dir_ok?(spot, values[:wave_dir]) 
+              end
+                
+              ok = if @all_spots
+                # all spots must match
+                results.reduce &:"&"
+              else
+                # any spot will match
+                results.reduce &:"|"
+              end
 
-            if ok
-              :good
-            else
-              :bad
+              if ok
+                :good
+              else
+                :bad
+              end
             end
           end
         end

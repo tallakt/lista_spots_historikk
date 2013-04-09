@@ -25,7 +25,7 @@
         color: #191970;
       }
 
-      .not-weekend {
+      .not-weekend, .rain {
         color: #999;
       }
 
@@ -62,6 +62,8 @@
               <td class="bad"></td>
             <% when :not_weekend %>
               <td class="not-weekend">&#8986;</td>
+            <% when :rain %>
+              <td class="rain">&#9748;</td>
             <% end %>
           <% end %>
         </tr>
