@@ -162,9 +162,11 @@ def wind_dir_ok?(spot, wind_dir)
 end
 
 def for_weekend_warrior?(date, time)
-  if time < 16
+  if time >= 16
+    true
+  else
     d = Date.parse date
-    d.cwday >= 6 # sat = 6, sunday = 7
+    (time >= 16) || (d.cwday >= 6) # sat = 6, sunday = 7
   end
 end
 
