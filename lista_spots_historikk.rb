@@ -169,7 +169,6 @@ def wave_dir_ok?(spot, wave_dir)
     direction_range_member? spot[:wave_dir], wave_dir
   else
     true
-YAML::ENGINE.yamler = 'syck'
   end
 end
 
@@ -180,7 +179,6 @@ end
 get '/report' do
   @all_spots = params['logikk'].match(/alle/)
   spots = SPOTS.select {|s| params['spots'][s[:id]] }
-YAML::ENGINE.yamler = 'syck'
 
   if @all_spots
     @logikk_heading = 'Dager som passer for alle disse stedene på et gitt tidspunkt'
