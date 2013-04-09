@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 # encoding: utf-8
 
+require 'yaml'
 require 'sinatra'
 require "sinatra/reloader" if development?
 
