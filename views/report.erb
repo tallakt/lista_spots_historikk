@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Lista brettsport statistikk</title>
+    <meta name="description" content="Lista brettsport statistikk">
+    <meta name="author" content="Tallak Tveide">
+    <style type="text/css">
+      tr { padding: 0 }
+      td { width: 50px;  text-align: center; padding: 0;}
+      td:first-child { width: 200px }
+
+      .dark { 
+        background-color: #191970;
+        color: #4961E1;
+      }
+
+      .cold {
+        background-color: #87CEEB;
+        color: #4682B4;
+      }
+
+      .good {
+        background-color: #D3D3D3;
+        color: #191970;
+      }
+
+      .not-weekend {
+        color: #999;
+      }
+
+
+      table {
+        border-collapse: collapse;
+      }
+    </style>
+  </head>
+  <body>
+    <% if @spot_navn.size < 2 %>
+      <h1>Mulige dager for <%= @spot_navn.first || '' %>  </h1>
+    <% else %>
+      <h1><%= @logikk_heading %>, gjelder for <%= @spot_navn.join ", " %>  </h1>
+    <% end %>
+    <table>
+      <tr>
+        <% ([''] + @hours).each do |h| %>
+          <th><%= h %></th>
+        <% end %>
+      </tr>
+      <% @guru.reverse.each do |guruday| %>
+        <tr>
+          <td class="date"><%= guruday[:date] %></td>
+          <% guruday[:results].each do |res| %>
+            <% case res 
+               when :dark %>
+              <td class="dark">&#9790;</td>
+            <% when :cold %>
+              <td class="cold">&#10052;</td>
+            <% when :good %>
+              <td class="good">&#9733;</td>
+            <% when :bad %>
+              <td class="bad"></td>
+            <% when :not_weekend %>
+              <td class="not-weekend">&#8986;</td>
+            <% end %>
+          <% end %>
+        </tr>
+      <% end %>
+    </table>
+
+
+    <a href="/">Tilbake til start</a>
+  </body>
+</html>

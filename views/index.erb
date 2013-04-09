@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Lista brettsport statistikk</title>
+    <meta name="description" content="Lista brettsport statistikk">
+    <meta name="author" content="Tallak Tveide">
+  </head>
+  <body>
+    <form action="report" method="get">
+      <p>Velg hvilke steder som inngår i rapporten</p>
+
+      <% SPOTS.each do |spot| %>
+        <input type="checkbox" name="spots[<%= spot[:id] %>]" value="<%= spot[:id] %>"><%= spot[:tekst] %><br/>
+      <% end %>
+
+      <p>Velg om merking skal foregå for en av stedene eller alle stedene</p>
+      <input type="radio" name="logikk" value="en" checked>Merke hvis en av stedene fungerer<br/>
+      <input type="radio" name="logikk" value="alle">Merke hvis alle stedene fungerer samtidig<br/>
+
+      <p>Merk av dersom kun helger og kvelder skal utheves</p>
+      <input type="checkbox" name="weekend" value="ja">Kun kvelder og helger<br/>
+
+      <input type="submit" value="Rapport">
+    </form>
+  </body>
+</html>
