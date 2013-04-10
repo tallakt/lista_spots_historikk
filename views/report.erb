@@ -30,8 +30,31 @@
       }
 
 
-      table {
+      table.results {
         border-collapse: collapse;
+      }
+
+      table.totals {
+        border-collapse: collapse;
+        border: 1px solid #999;
+        margin-bottom: 50px;
+        margin-above: 50px;
+      }
+
+      table.totals td {
+        width: 500px;
+        text-align: left;
+        border: 1px solid #999;
+        padding: 4px;
+      }
+
+      table.totals td:nth-child(3) {
+        width: 30px;
+        text-align: center;
+      }
+      table.totals td:first-child {
+        width: 300px;
+        text-align: left;
       }
     </style>
   </head>
@@ -39,9 +62,47 @@
     <% if @spot_navn.size < 2 %>
       <h1>Mulige dager for <%= @spot_navn.first || '' %>  </h1>
     <% else %>
-      <h1><%= @logikk_heading %>, gjelder for <%= @spot_navn.join ", " %>  </h1>
+      <h1><%= @logikk_heading %></h1>
+      <ul>
+        <% @spot_navn.each do |n| %>
+          <li><%= n %></li>
+        <% end %>
+      </ul>
     <% end %>
-    <table>
+
+    <table class="totals">
+      <tr>
+        <td>Dager med minst en stjerne</td>
+        <td><%= @surfable_days %> dager av <%= @total_days %> mulige (<%= (@surfable_days * 100.0 / @total_days).to_i %>%)</td>
+      </tr>
+      <tr>
+        <td>Stjerner (mulige surfetidspunkt)</td>
+        <td><%= @totals[:good] %> stk av <%= @totals[:good] + @totals[:bad] %> mulige 
+          (<%= (@totals[:good] * 100.0 / (@totals[:good] + @totals[:bad])).to_i %>%)</td>
+        <td>&#9733;</td>
+      </tr>
+      <tr>
+        <td>Kuldegrader</td>
+        <td><%= @totals[:cold] %> stk</td>
+        <td>&#10052;</td>
+      </tr>
+      <% if @totals[:rain] > 0 %>
+        <tr>
+          <td>Mye regnvær (2 mm per 3 timer)</td>
+          <td><%= @totals[:rain] %> stk</td>
+        <td>&#9748;</td>
+        </tr>
+      <% end %>
+      <% if @totals[:not_weekend] > 0 %>
+        <tr>
+          <td>I arbeidstiden (rød/ferie utelatt)</td>
+          <td><%= @totals[:not_weekend] %> stk</td>
+        <td>&#8986;</td>
+        </tr>
+      <% end %>
+    </table>
+
+    <table class="results">
       <tr>
         <% ([''] + @hours).each do |h| %>
           <th><%= h %></th>

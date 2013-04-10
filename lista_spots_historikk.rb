@@ -22,7 +22,7 @@ SPOTS = [
   { id: 'bispen-fs', 
     tekst: 'Bispen (kite, freestyle)', 
     wind: 8..15, 
-    wind_dir: 'WSW'..'W' },
+    wind_dir: 'WSW'..'NW' },
   { id: 'huseby-fs', 
     tekst: 'Huseby (kite, freestyle)', 
     wind: 8..15, 
@@ -119,7 +119,7 @@ SUN_HOURS = {
 }
 
 WIND_DIRS = %w(S SSW SW WSW W WNW NW NNW N NNE NE ENE E ESE SE SSE)
-GURU = YAML::load_file(File.join(File.dirname(File.expand_path(__FILE__)), 'guru_data.yaml'))
+GURU ||= YAML::load_file(File.join(File.dirname(File.expand_path(__FILE__)), 'guru_data.yaml'))
 
 def is_sunlight?(date, hours)
   SUN_HOURS[date.match(/\d\d\.(\d\d)\.\d\d\d\d/)[1].to_i].member? hours
@@ -241,6 +241,11 @@ get '/report' do
     end
     { date: guru_day[:date], results: results }
   end
+
+  # some statistics
+  @total_days = @guru.size
+  @surfable_days = @guru.count {|r| r[:results].member? :good }
+  @totals = Hash[[:good, :bad, :rain, :cold, :dark, :not_weekend].map {|x| [x, @guru.map {|r| r[:results].count(x)}.reduce(&:+)] }]
 
   erb :report
 end
