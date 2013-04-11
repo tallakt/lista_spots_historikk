@@ -5,6 +5,7 @@
     <title>Lista brettsport statistikk</title>
     <meta name="description" content="Lista brettsport statistikk">
     <meta name="author" content="Tallak Tveide">
+
     <style type="text/css">
       tr { padding: 0 }
       td { width: 50px;  text-align: center; padding: 0;}
@@ -56,6 +57,33 @@
         width: 300px;
         text-align: left;
       }
+
+      .month-plot {
+        margin-above: 50px;
+        margin-bottom: 50px;
+        text-align: center;
+      }
+
+      .y.axis path {
+        stroke-width: 1px;
+      }
+
+      .axis path,
+      .axis line {
+        fill: none;
+        stroke: #000;
+        shape-rendering: crispEdges;
+      }
+
+      .bar {
+        fill: #191970;
+      }
+
+      .x.axis path {
+        display: none;
+      }
+
+
     </style>
   </head>
   <body>
@@ -102,6 +130,100 @@
       <% end %>
     </table>
 
+    <!-- Plotting section -->
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script>
+      var plotMonthly = function(data, container, description) { 
+        var margin = {top: 20, right: 20, bottom: 30, left: 80},
+            width = 960 - margin.left - margin.right,
+            height = 500 - margin.top - margin.bottom;
+
+        var formatPercent = d3.format(".1%");
+
+        var x = d3.scale.ordinal()
+            .rangeRoundBands([0, width], .3);
+
+        var y = d3.scale.linear()
+            .range([height, 0]);
+
+        var xAxis = d3.svg.axis()
+            .scale(x)
+            .orient("bottom");
+
+        var yAxis = d3.svg.axis()
+            .scale(y)
+            .orient("left")
+            .tickFormat(formatPercent);
+
+        var svg = d3.select(container).append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+          .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+        x.domain(data.map(function(d) { return d.month; }));
+        y.domain([0, d3.max(data, function(d) { return d.percentage; })]);
+
+        svg.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(xAxis);
+
+        svg.append("g")
+            .attr("class", "y axis")
+            .call(yAxis)
+          .append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 6)
+            .attr("dy", ".71em")
+            .style("text-anchor", "end")
+            .text("Surfbare dager prosentvis");
+
+        d3.select(container).append("p").text(description);
+
+
+        svg.selectAll(".bar")
+            .data(data)
+          .enter().append("rect")
+            .attr("class", "bar")
+            .attr("x", function(d) { return x(d.month); })
+            .attr("width", x.rangeBand())
+            .attr("y", function(d) { return y(d.percentage); })
+            .attr("height", function(d) { return height - y(d.percentage); });
+      };
+    </script>
+
+
+
+
+    <div id="totals-per-month" class="month-plot">
+      <p><a href="#" id="show-each-year">Klikk for å vise alle år enkeltvis</a></p>
+      <script>
+        d3.select("#show-each-year").on("click", function() {
+          d3.select(this).style("display", "none");
+          d3.select("#totals-per-year").style("display", "inline");
+        });
+      </script>
+
+    </div>
+    <script>
+      plotMonthly(<%= @total_monthly_stats.to_json %>, "#totals-per-month", "Månedlig fordeling alle år");
+    </script>
+
+
+    <div id="totals-per-year" style="display: none;">
+      <% @year_to_monthly_stats.each do |year, stats| %>
+        <div id="totals-per-month-<%= year %>" class="month-plot">
+        </div>
+        <script>
+          plotMonthly(<%= stats.to_json %>, "#totals-per-month-<%= year %>", "Månedlig fordeling <%= year %>");
+        </script>
+
+      <% end %>
+    </div>
+
+    <!-- Detailed results section -->
     <table class="results">
       <tr>
         <% ([''] + @hours).each do |h| %>

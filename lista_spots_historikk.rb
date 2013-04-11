@@ -2,6 +2,7 @@
 # encoding: utf-8
 
 require 'yaml'
+require 'json'
 require 'sinatra'
 require "sinatra/reloader" if development?
 
@@ -92,7 +93,6 @@ SPOTS = [
   { id: 'blindgjengeren-sup', 
     tekst: 'Militærområdet (SUP)',
     wind: 0..10,
-    wind_dir: 'SW'..'WSW',
     wave: 2.5..99,
     wave_dir: 'SW'..'WNW' },
   { id: 'vraket-sup', 
@@ -100,6 +100,24 @@ SPOTS = [
     wind: 0..10,
     wind_dir: 'SW'..'WSW',
     wave: 2.5..99,
+    wave_dir: 'SW'..'WNW' },
+
+  { id: 'renna-surf', 
+    tekst: 'Pisserenna (Bølgesurf)',
+    wave: 2.4..5,
+    wave_dir: 'SW'..'NW' },
+  { id: 'lille-havika-surf', 
+    tekst: 'Lille Havika (Bølgesurf)',
+    wave: 2.4..6,
+    wave_dir: 'SE'..'SW' },
+  { id: 'blindgjengeren-surf', 
+    tekst: 'Militærområdet (Bølgesurf)',
+    wave: 3.0..99,
+    wave_dir: 'SW'..'WNW' },
+  { id: 'vraket-surf', 
+    tekst: 'Vraket (Bausje vestodden) (Bølgesurf)',
+    wind_dir: 'SW'..'WSW',
+    wave: 3.0..99,
     wave_dir: 'SW'..'WNW' },
 ]
 
@@ -117,6 +135,8 @@ SUN_HOURS = {
   11 => 8..15,
   12 => 9..15
 }
+
+MONTHS = %w(Jan Feb Mar Apr Mai Jun Jul Aug Sep Okt Nov Des)
 
 WIND_DIRS = %w(S SSW SW WSW W WNW NW NNW N NNE NE ENE E ESE SE SSE)
 GURU ||= YAML::load_file(File.join(File.dirname(File.expand_path(__FILE__)), 'guru_data.yaml'))
@@ -178,6 +198,23 @@ def wave_dir_ok?(spot, wave_dir)
   end
 end
 
+def count_good_days(guru_days)
+  guru_days.count {|r| r[:results].member? :good }
+end
+
+
+def statistics_per_month(guru_days)
+  guru_days.group_by {|guru_day| guru_day[:date].match(/\d\d\.(\d\d)\.\d\d\d\d/)[1].to_i }.map do |month, guru_days|
+    { month: MONTHS[month - 1], 
+      total_days: guru_days.size, 
+      surfable_days: count_good_days(guru_days), 
+      percentage: count_good_days(guru_days).to_f / guru_days.size }
+  end
+end
+
+def group_guru_days_by_year(guru_days)
+  guru_days.group_by {|guru_day| guru_day[:date].match(/\d\d\.\d\d\.(\d\d\d\d)/)[1].to_i }
+end
 
 get '/' do
   erb :index
@@ -240,9 +277,16 @@ get '/report' do
   end
 
   # some statistics
-  @total_days = @guru.size
-  @surfable_days = @guru.count {|r| r[:results].member? :good }
+  @total_days = @guru.size #could perhaps consider days containting either :good or :bad?
+  @surfable_days = count_good_days(@guru)
+  @surfable_percentage = @surfable_days / @total_days
   @totals = Hash[[:good, :bad, :rain, :cold, :dark, :not_weekend].map {|x| [x, @guru.map {|r| r[:results].count(x)}.reduce(&:+)] }]
+
+  # statistics per month and year/all years
+  # using :good / total days as metric
+  @year_to_monthly_stats = Hash[group_guru_days_by_year(@guru).map {|year, guru_days| [year, statistics_per_month(guru_days)] }]
+  @total_monthly_stats = statistics_per_month(@guru)
 
   erb :report
 end
+
