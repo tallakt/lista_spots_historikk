@@ -42,7 +42,7 @@ SPOTS = [
   { id: 'renna-w', 
     tekst: 'Pisserenna (kite, bølger)',
     wind: 12..25,
-    wind_dir: 'WNW'..'NW',
+    wind_dir: 'W'..'NW',
     wave: 2.5..5,
     wave_dir: 'SW'..'NW' },
   { id: 'bua-w', 
